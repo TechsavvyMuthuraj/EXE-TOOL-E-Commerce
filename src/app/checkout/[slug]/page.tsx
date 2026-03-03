@@ -62,6 +62,24 @@ export default function DirectCheckoutPage({ params, searchParams }: {
                 }
                 setSelectedTier(tier);
 
+                // 3.4 Check if user already owns this tier!
+                const { data: existingLicense } = await supabase
+                    .from('licenses')
+                    .select('id')
+                    .eq('user_id', session.user.id)
+                    .eq('product_id', match._id)
+                    .ilike('license_tier', tier.name)
+                    .maybeSingle();
+
+                if (existingLicense) {
+                    setStatus('redirecting');
+                    setErrorMsg('existing_license'); // we can use this to show a specific message
+                    setTimeout(() => {
+                        window.location.href = tier.downloadLink || '/dashboard';
+                    }, 1500);
+                    return;
+                }
+
                 // 3.5 Check coupon if provided
                 let hasValidCoupon = false;
                 let couponDiscountPerc = 0;
@@ -172,8 +190,10 @@ export default function DirectCheckoutPage({ params, searchParams }: {
                 }} />
 
                 <div style={{ textAlign: 'center' }}>
-                    <p style={{ color: 'var(--accent)', fontFamily: 'var(--font-heading)', textTransform: 'uppercase', letterSpacing: '2px', fontSize: '0.9rem' }}>
-                        {status === 'redirecting' ? '⚡ Redirecting to Secure Payment' : 'Loading...'}
+                    <p style={{ color: errorMsg === 'existing_license' ? '#4CAF50' : 'var(--accent)', fontFamily: 'var(--font-heading)', textTransform: 'uppercase', letterSpacing: '2px', fontSize: '0.9rem' }}>
+                        {status === 'redirecting'
+                            ? (errorMsg === 'existing_license' ? '⚡ Access Granted: Redirecting to Download' : '⚡ Redirecting to Secure Payment')
+                            : 'Loading...'}
                     </p>
                     {product && (
                         <p style={{ color: 'var(--muted)', fontSize: '0.9rem', marginTop: '0.5rem' }}>
@@ -182,7 +202,10 @@ export default function DirectCheckoutPage({ params, searchParams }: {
                     )}
                     {status === 'redirecting' && (
                         <p style={{ color: 'var(--muted)', fontSize: '0.75rem', marginTop: '0.5rem' }}>
-                            You will be redirected to the payment gateway shortly...
+                            {errorMsg === 'existing_license'
+                                ? 'Active license located. Routing you to your secure files...'
+                                : 'You will be redirected to the payment gateway shortly...'
+                            }
                         </p>
                     )}
                 </div>

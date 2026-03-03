@@ -4,22 +4,8 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import styles from './page.module.css';
 
-interface OrderItem {
-    id: string; // The specific license UUID mapped to user's order
-    product_slug: string;
-    license_tier: string;
-    created_at: string;
-}
-
-// Mock fallback incase Supabase is unconfigured / empty
-const mockLicenses = [
-    { id: 'LIC-A1B2C3D4', productTitle: 'Nexus Engine Pro', tier: 'COMMERCIAL', issueDate: '2026-02-15', expires: 'Never' },
-    { id: 'LIC-E5F6G7H8', productTitle: 'Quantum UI Kit', tier: 'PERSONAL', issueDate: '2026-02-10', expires: 'Never' },
-    { id: 'LIC-I9J0K1L2', productTitle: 'Strata Dashboard', tier: 'TEAM', issueDate: '2026-01-05', expires: 'Never' },
-];
-
 export default function LicensesPage() {
-    const [licenses, setLicenses] = useState<any[]>(mockLicenses);
+    const [licenses, setLicenses] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [downloadingId, setDownloadingId] = useState<string | null>(null);
     const [copiedId, setCopiedId] = useState<string | null>(null);
@@ -32,39 +18,55 @@ export default function LicensesPage() {
                 const { data: { session } } = await supabase.auth.getSession();
 
                 if (session?.user) {
-                    // Fetch completed order_items for this user (each item = 1 license)
-                    const { data, error } = await supabase
-                        .from('order_items')
+                    // Fetch real licenses
+                    const { data: dbLicenses, error } = await supabase
+                        .from('licenses')
                         .select(`
                             id,
-                            product_slug,
+                            product_id,
                             license_tier,
-                            orders!inner(status, user_id, created_at)
+                            created_at
                         `)
-                        .eq('orders.user_id', session.user.id)
-                        .eq('orders.status', 'completed');
+                        .eq('user_id', session.user.id);
 
                     if (error) throw error;
 
-                    if (data && isMounted) {
-                        // Sort descending by order's created_at date
-                        const sortedData = data.sort((a: any, b: any) =>
-                            new Date(b.orders.created_at).getTime() - new Date(a.orders.created_at).getTime()
+                    if (dbLicenses && isMounted) {
+                        // Fetch Sanity products to get real names & download links
+                        const res = await fetch('/api/products');
+                        const sanityData = await res.json();
+                        const sanityProducts = sanityData.products || [];
+
+                        // Sort descending
+                        const sortedData = dbLicenses.sort((a, b) =>
+                            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
                         );
 
-                        const mappedLicenses = sortedData.map((item: any) => ({
-                            // Generate short hash-like id from uuid for UI display
-                            id: `LIC-${item.id.split('-')[0].toUpperCase()}`,
-                            productTitle: item.product_slug.replace(/-/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()),
-                            tier: item.license_tier.toUpperCase(),
-                            issueDate: new Date(item.orders.created_at).toISOString().split('T')[0],
-                            expires: 'Never' // Perpetual licenses
-                        }));
+                        const mappedLicenses = sortedData.map((item) => {
+                            const match = sanityProducts.find((p: any) => p._id === item.product_id);
+
+                            // Find the correct tier to grab the real secure download link
+                            let downloadUrl = '';
+                            if (match && match.pricingTiers) {
+                                const tierMatch = match.pricingTiers.find((t: any) => t.name?.toLowerCase() === item.license_tier?.toLowerCase());
+                                if (tierMatch) downloadUrl = tierMatch.downloadLink;
+                            }
+
+                            return {
+                                id: `LIC-${item.id.split('-')[0].toUpperCase()}`,
+                                rawId: item.id,
+                                productTitle: match?.title || 'Unknown Product',
+                                tier: item.license_tier?.toUpperCase() || 'STANDARD',
+                                issueDate: new Date(item.created_at).toISOString().split('T')[0],
+                                expires: 'Never',
+                                downloadUrl: downloadUrl || '#'
+                            };
+                        });
                         setLicenses(mappedLicenses);
                     }
                 }
             } catch (err) {
-                console.error("Supabase license fetch failed, defaulting to mock data:", err);
+                console.error("Supabase license fetch failed:", err);
             } finally {
                 if (isMounted) setIsLoading(false);
             }
@@ -72,12 +74,8 @@ export default function LicensesPage() {
 
         fetchLicenses();
 
-        // Setup real-time postgres subscriptions for this user's data
         const channel = supabase.channel('licenses_realtime')
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => {
-                fetchLicenses();
-            })
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'order_items' }, () => {
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'licenses' }, () => {
                 fetchLicenses();
             })
             .subscribe();
@@ -94,17 +92,22 @@ export default function LicensesPage() {
         setTimeout(() => setCopiedId(null), 2000);
     };
 
-    const handleDownload = (id: string) => {
+    const handleDownload = (id: string, downloadUrl: string) => {
+        // If there is an actual downloadUrl set by admin, route them straight to it (e.g. Google Drive / S3 vault).
+        if (downloadUrl && downloadUrl !== '#') {
+            window.open(downloadUrl, '_blank');
+            return;
+        }
+
         setDownloadingId(id);
-        // Simulate Supabase Storage Signed URL generation
         setTimeout(() => {
             const license = licenses.find(l => l.id === id);
-            const content = `LICENSE KEY: ${id}\nPRODUCT: ${license?.productTitle}\nTIER: ${license?.tier}\n\nThis is a mocked downloaded asset file triggered from a Supabase row.`;
+            const content = `LICENSE KEY: ${id}\nPRODUCT: ${license?.productTitle}\nTIER: ${license?.tier}\n\nWARNING: Contact admin, valid download link missing from database for this specific tier.`;
             const blob = new Blob([content], { type: 'text/plain' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = `${license?.productTitle?.replace(/\s+/g, '-').toLowerCase()}-assets.txt`;
+            a.download = `${license?.productTitle?.replace(/\s+/g, '-').toLowerCase()}-recovery.txt`;
             document.body.appendChild(a);
             a.click();
             window.URL.revokeObjectURL(url);
@@ -139,14 +142,14 @@ export default function LicensesPage() {
                                     <input
                                         type="text"
                                         readOnly
-                                        value={license.id}
+                                        value={license.rawId}
                                         className={`pricing-code ${styles.keyInput}`}
                                     />
                                     <button
                                         className={`btn-secondary ${styles.copyBtn}`}
-                                        onClick={() => handleCopy(license.id)}
+                                        onClick={() => handleCopy(license.rawId)}
                                     >
-                                        {copiedId === license.id ? 'Copied!' : 'Copy'}
+                                        {copiedId === license.rawId ? 'Copied!' : 'Copy'}
                                     </button>
                                 </div>
                             </div>
@@ -164,11 +167,11 @@ export default function LicensesPage() {
 
                             <button
                                 className={`btn-primary ${styles.downloadBtn}`}
-                                onClick={() => handleDownload(license.id)}
+                                onClick={() => handleDownload(license.id, license.downloadUrl)}
                                 disabled={downloadingId === license.id}
                             >
                                 <span className={styles.dlIcon}>↓</span>
-                                {downloadingId === license.id ? 'Generating Secure Link...' : 'Download Assets'}
+                                {downloadingId === license.id ? 'Generating Secure Link...' : (license.downloadUrl && license.downloadUrl !== '#' ? 'Access Download' : 'Missing Link (Fallback)')}
                             </button>
                         </div>
                     ))

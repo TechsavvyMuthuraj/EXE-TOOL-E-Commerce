@@ -3,17 +3,21 @@
 import { useState, use, useEffect } from 'react';
 import { useCartStore } from '@/store/useCartStore';
 import { sanityClient } from '@/lib/sanity';
+import { supabase } from '@/lib/supabase';
 import { getProductBySlug } from '@/data/products';
 import ReviewSection from '@/components/ReviewSection';
+import { useRouter } from 'next/navigation';
 import { slugify } from '@/lib/utils';
 import styles from './page.module.css';
 
 export default function ProductDetailPage({ params }: { params: Promise<{ slug: string }> }) {
     const { slug } = use(params);
+    const router = useRouter();
     const [product, setProduct] = useState<any>(null);
     const [selectedTier, setSelectedTier] = useState<any>(null);
     const [activeImage, setActiveImage] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [isOwner, setIsOwner] = useState(false);
     const { addItem, openDrawer } = useCartStore();
 
     const [couponCode, setCouponCode] = useState('');
@@ -62,6 +66,18 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
                 const data = await sanityClient.fetch(query, { slug });
 
                 if (data && data.title) {
+                    // Check ownership
+                    const { data: { session } } = await supabase.auth.getSession();
+                    if (session?.user) {
+                        const { data: license } = await supabase
+                            .from('licenses')
+                            .select('id')
+                            .eq('user_id', session.user.id)
+                            .eq('product_id', data._id)
+                            .maybeSingle();
+                        if (license) setIsOwner(true);
+                    }
+
                     const imageVal = data.imageUrl
                         ? `url(${data.imageUrl}) center/cover`
                         : 'linear-gradient(135deg, #1a1a2e 0%, #16213e 100%)';
@@ -136,6 +152,16 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
 
     const handleBuyNow = async () => {
         if (!product || !selectedTier) return;
+
+        if (isOwner) {
+            const dlLink = selectedTier.downloadLink || product.download_link;
+            if (dlLink) {
+                window.open(dlLink, '_blank');
+            } else {
+                router.push('/dashboard/licenses');
+            }
+            return;
+        }
 
         let finalLink = (couponDiscount > 0 && selectedTier.couponPaymentLink)
             ? selectedTier.couponPaymentLink
@@ -326,11 +352,17 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
 
                             <div className={styles.buttonGroup}>
                                 <button className={`btn-primary ${styles.buyNowBtn}`} onClick={handleBuyNow}>
-                                    ⚡ BUY NOW
+                                    {isOwner ? '📥 DOWNLOAD NOW' : '⚡ BUY NOW'}
                                 </button>
-                                <button className={`btn-secondary ${styles.secondaryCartBtn}`} onClick={handleAddToCart}>
-                                    🛒 Add to Cart
-                                </button>
+                                {!isOwner ? (
+                                    <button className={`btn-secondary ${styles.secondaryCartBtn}`} onClick={handleAddToCart}>
+                                        🛒 Add to Cart
+                                    </button>
+                                ) : (
+                                    <button className={`btn-secondary ${styles.secondaryCartBtn}`} onClick={() => router.push('/dashboard/licenses')}>
+                                        Dashboard
+                                    </button>
+                                )}
                             </div>
                         </div>
                     )}
