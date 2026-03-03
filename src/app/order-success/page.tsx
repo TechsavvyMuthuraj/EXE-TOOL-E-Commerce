@@ -11,10 +11,15 @@ export default function OrderSuccessPage() {
     const [error, setError] = useState('');
 
     useEffect(() => {
+        let isMounted = true;
+        let retryCount = 0;
+        const MAX_RETRIES = 10; // Max 25 seconds of polling
+        let channel: any;
+
         const fetchLicenses = async () => {
             const { data: { session } } = await supabase.auth.getSession();
             if (!session) {
-                setStatus('success'); // Fallback to simple success
+                if (isMounted) setStatus('success');
                 return;
             }
 
@@ -28,19 +33,45 @@ export default function OrderSuccessPage() {
                     .limit(5);
 
                 if (data && data.length > 0) {
-                    setLicenses(data);
-                    setStatus('success');
+                    if (isMounted) {
+                        setLicenses(data);
+                        setStatus('success');
+                    }
+                } else if (retryCount < MAX_RETRIES) {
+                    retryCount++;
+                    setTimeout(() => { if (isMounted) fetchLicenses(); }, 2500);
                 } else {
-                    // Maybe webhook hasn't fired yet? Retry in 2 seconds
-                    setTimeout(fetchLicenses, 2500);
+                    if (isMounted) setStatus('success'); // Stop polling after max retries
                 }
             } catch (e) {
                 console.error(e);
-                setStatus('success');
+                if (isMounted) setStatus('success');
             }
         };
 
+        // 1. Initial Fetch Attempt
         fetchLicenses();
+
+        // 2. Setup Realtime Listener
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (session?.user) {
+                channel = supabase.channel('order_success_realtime')
+                    .on('postgres_changes', {
+                        event: 'INSERT',
+                        schema: 'public',
+                        table: 'licenses',
+                        filter: `user_id=eq.${session.user.id}`
+                    }, () => {
+                        fetchLicenses();
+                    })
+                    .subscribe();
+            }
+        });
+
+        return () => {
+            isMounted = false;
+            if (channel) supabase.removeChannel(channel);
+        };
     }, []);
 
     return (

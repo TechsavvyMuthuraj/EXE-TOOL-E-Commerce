@@ -4,6 +4,7 @@ import styles from './page.module.css';
 import TerminalLogger from '@/components/ui/TerminalLogger';
 import SystemCoreMonitor from '@/components/ui/SystemCoreMonitor';
 import RevenueChart from '@/components/ui/RevenueChart';
+import { supabase } from '@/lib/supabase';
 
 export default function AdminDashboard() {
     const [stats, setStats] = useState<any>(null);
@@ -14,16 +15,25 @@ export default function AdminDashboard() {
     const [settingsId, setSettingsId] = useState<string | null>(null);
     const [bannerActive, setBannerActive] = useState(false);
     const [bannerText, setBannerText] = useState('');
-    const [razorpayHandle, setRazorpayHandle] = useState('');
     const [savingBanner, setSavingBanner] = useState(false);
     const [bannerMsg, setBannerMsg] = useState('');
 
-    useEffect(() => {
-        // Load Stats
+    const loadStats = () => {
         fetch('/api/admin/stats')
             .then(r => r.json())
             .then(data => { setStats(data); setLoading(false); })
             .catch(() => setLoading(false));
+    };
+
+    useEffect(() => {
+        // Load Stats
+        loadStats();
+
+        // Admin Realtime Sync
+        const channel = supabase.channel('admin_stats_realtime')
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'orders' }, () => loadStats())
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'licenses' }, () => loadStats())
+            .subscribe();
 
         // Load Audit Logs
         fetch('/api/admin/logs')
@@ -44,7 +54,6 @@ export default function AdminDashboard() {
                     setSettingsId(settings._id);
                     setBannerActive(!!settings.bannerActive);
                     setBannerText(settings.bannerText || '');
-                    setRazorpayHandle(settings.razorpayHandle || '');
                 }
             })
             .catch(() => { });
@@ -52,8 +61,8 @@ export default function AdminDashboard() {
 
     const handleSaveBanner = async () => {
         setSavingBanner(true); setBannerMsg('');
-        const document = { _type: 'siteSettings', bannerActive, bannerText, razorpayHandle };
-        const patch = { bannerActive, bannerText, razorpayHandle };
+        const document = { _type: 'siteSettings', bannerActive, bannerText };
+        const patch = { bannerActive, bannerText };
 
         try {
             const res = await fetch('/api/admin/sanity', {
@@ -126,25 +135,6 @@ export default function AdminDashboard() {
                         />
                     </div>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '1.2rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                            <label style={{ fontSize: '0.75rem', color: '#555', textTransform: 'uppercase', letterSpacing: '1px' }}>Razorpay Dynamic Link</label>
-                            <span style={{ fontSize: '0.6rem', color: 'var(--accent)', background: 'rgba(255,184,0,0.1)', padding: '2px 6px', borderRadius: '4px' }}>NEW FEAT</span>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', background: '#111', border: '1px solid #333', borderRadius: '4px' }}>
-                            <span style={{ padding: '0 0.8rem', color: '#444', fontSize: '0.85rem', fontWeight: 700 }}>razorpay.me/@</span>
-                            <input
-                                value={razorpayHandle}
-                                onChange={e => setRazorpayHandle(e.target.value.toLowerCase().trim())}
-                                placeholder="muthurajecommerce"
-                                style={{ flex: 1, background: 'none', border: 'none', color: '#fff', padding: '0.6rem 0.5rem', outline: 'none', fontSize: '0.85rem', fontFamily: 'var(--font-mono)' }}
-                            />
-                        </div>
-                        <p style={{ color: '#555', fontSize: '0.65rem', margin: '0 0 0.5rem 0' }}>
-                            Links automatically append product price: <code>razorpay.me/@handle/<b>₹999</b></code>
-                        </p>
-                    </div>
-
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '1.5rem' }}>
                         <button onClick={handleSaveBanner} disabled={savingBanner} style={{ background: 'var(--accent)', color: '#000', border: 'none', padding: '0.5rem 1rem', borderRadius: '4px', fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--font-heading)' }}>
                             {savingBanner ? 'Saving...' : 'Update Settings'}
@@ -194,7 +184,7 @@ export default function AdminDashboard() {
                     <SystemCoreMonitor />
                 </div>
             </div>
-        </div>
+        </div >
     );
 }
 

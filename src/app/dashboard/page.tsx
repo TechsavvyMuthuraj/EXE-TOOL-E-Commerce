@@ -47,15 +47,15 @@ export default function DashboardOverview() {
 
                 // 3. Fetch Active Licenses & Recent Activity
                 const { data: licenseData } = await supabase
-                    .from('order_items')
+                    .from('licenses')
                     .select(`
                         id,
-                        product_slug,
+                        product:product_id(title),
                         license_tier,
-                        orders!inner(user_id, status, created_at)
+                        created_at,
+                        order_id
                     `)
-                    .eq('orders.user_id', userId)
-                    .eq('orders.status', 'completed');
+                    .eq('user_id', userId);
 
                 if (isMounted) {
                     let activeLicenses = 0;
@@ -66,20 +66,21 @@ export default function DashboardOverview() {
 
                         // Sort by created_at descending
                         const sorted = [...licenseData].sort((a: any, b: any) =>
-                            new Date(b.orders.created_at).getTime() - new Date(a.orders.created_at).getTime()
+                            new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
                         );
 
                         recentActivity = sorted.slice(0, 3).map((item: any) => ({
                             id: item.id,
-                            title: item.product_slug.replace(/-/g, ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()),
-                            tier: item.license_tier.toUpperCase(),
-                            date: new Date(item.orders.created_at).toLocaleDateString(undefined, {
+                            title: item.product?.title || 'Unknown Product',
+                            tier: item.license_tier?.toUpperCase() || 'STANDARD',
+                            date: new Date(item.created_at).toLocaleDateString(undefined, {
                                 year: 'numeric',
                                 month: 'short',
                                 day: 'numeric'
                             })
                         }));
                     }
+
 
                     setStats({
                         activeLicenses,
@@ -106,7 +107,7 @@ export default function DashboardOverview() {
             .on('postgres_changes', { event: '*', schema: 'public', table: 'wishlist' }, () => {
                 fetchDashboardData();
             })
-            .on('postgres_changes', { event: '*', schema: 'public', table: 'order_items' }, () => {
+            .on('postgres_changes', { event: '*', schema: 'public', table: 'licenses' }, () => {
                 fetchDashboardData();
             })
             .subscribe();
