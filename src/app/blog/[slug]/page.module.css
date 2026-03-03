@@ -163,3 +163,23 @@
     font-size: 0.85rem;
     padding: 0.5rem 1rem;
 }
+
+@media (max-width: 768px) {
+    .postWrapper {
+        padding: 2rem 1rem;
+    }
+
+    .title {
+        font-size: 2.25rem;
+    }
+
+    .metaData {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .postContent {
+        font-size: 1.05rem;
+    }
+}

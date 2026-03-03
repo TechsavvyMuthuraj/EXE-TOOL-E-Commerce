@@ -114,3 +114,36 @@
 .mainContent {
     width: 100%;
 }
+
+@media (max-width: 900px) {
+    .navConfig {
+        flex-direction: row;
+        overflow-x: auto;
+        padding: 0.5rem 1.5rem;
+        gap: 1rem;
+        scrollbar-width: none;
+        /* Firefox */
+    }
+
+    .navConfig::-webkit-scrollbar {
+        display: none;
+        /* Chrome/Safari */
+    }
+
+    .navItem {
+        border-left: none;
+        border-bottom: 3px solid transparent;
+        padding: 0.5rem 0.25rem;
+        white-space: nowrap;
+    }
+
+    .navItem.active {
+        border-left-color: transparent;
+        border-bottom-color: var(--accent);
+    }
+
+    .sidebarHeader,
+    .sidebarFooter {
+        padding: 1rem 1.5rem;
+    }
+}

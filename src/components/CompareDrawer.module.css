@@ -186,3 +186,16 @@
         display: none;
     }
 }
+
+@media (max-width: 480px) {
+    .actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+
+    .clearBtn,
+    .compareBtn {
+        flex: 1;
+        text-align: center;
+    }
+}
