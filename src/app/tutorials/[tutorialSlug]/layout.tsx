@@ -33,7 +33,7 @@ export default async function TutorialShellLayout({
     params
 }: {
     children: React.ReactNode;
-    params: { tutorialSlug: string };
+    params: Promise<{ tutorialSlug: string }>;
 }) {
     const { tutorialSlug } = await params;
     const tutorial = await getTutorialDetails(tutorialSlug);
