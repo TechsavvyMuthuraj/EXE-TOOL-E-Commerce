@@ -19,7 +19,7 @@ export async function GET() {
                 shortDescription,
                 longDescription,
                 features,
-                pricingTiers[] { name, price, originalPrice, licenseType, downloadLink, paymentLink },
+                pricingTiers[] { name, price, originalPrice, licenseType, downloadLink, paymentLink, couponPaymentLink },
                 "mainImage": mainImage.asset->url,
                 "gallery": gallery[].asset->url,
                 _createdAt

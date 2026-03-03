@@ -16,7 +16,7 @@ export default function AdminCouponsPage() {
     const [msg, setMsg] = useState('');
     const { confirm } = useModal();
     const [form, setForm] = useState({
-        code: '', discount_percentage: '', max_uses: '', valid_until: '', global_coupon: true, product_id: ''
+        code: '', discount_percentage: '', max_uses: '', expires_at: '', global_coupon: true, product_id: ''
     });
 
     const load = () => {
@@ -34,24 +34,23 @@ export default function AdminCouponsPage() {
             code: form.code.toUpperCase(),
             discount_percentage: Number(form.discount_percentage),
             max_uses: form.max_uses ? Number(form.max_uses) : null,
-            valid_until: form.valid_until || null,
-            global_coupon: form.global_coupon,
+            expires_at: form.expires_at || null,
             product_id: form.global_coupon ? null : form.product_id || null,
-            is_active: true,
-            current_uses: 0,
+            active: true,
+            uses: 0,
         });
         if (error) {
             setMsg('Error: ' + error.message);
         } else {
             setMsg('✓ Coupon created!');
-            setForm({ code: '', discount_percentage: '', max_uses: '', valid_until: '', global_coupon: true, product_id: '' });
+            setForm({ code: '', discount_percentage: '', max_uses: '', expires_at: '', global_coupon: true, product_id: '' });
             load();
         }
         setSaving(false);
     };
 
-    const handleToggle = async (id: string, is_active: boolean) => {
-        await supabase.from('coupons').update({ is_active: !is_active }).eq('id', id);
+    const handleToggle = async (id: string, active: boolean) => {
+        await supabase.from('coupons').update({ active: !active }).eq('id', id);
         load();
     };
 
@@ -96,7 +95,7 @@ export default function AdminCouponsPage() {
                             </div>
                             <div className={styles.field}>
                                 <label>Expiry Date</label>
-                                <input type="date" value={form.valid_until} onChange={e => setForm(p => ({ ...p, valid_until: e.target.value }))} />
+                                <input type="date" value={form.expires_at} onChange={e => setForm(p => ({ ...p, expires_at: e.target.value }))} />
                             </div>
                         </div>
                         <div className={styles.field}>
@@ -134,11 +133,11 @@ export default function AdminCouponsPage() {
                             <div key={c.id} className={styles.tableRow} style={{ gridTemplateColumns: '1fr 1fr 1fr 1fr 1fr auto' }}>
                                 <span className={styles.mono} style={{ color: 'var(--accent)' }}>{c.code}</span>
                                 <span>{c.discount_percentage}% OFF</span>
-                                <span className={styles.muted}>{c.current_uses}{c.max_uses ? `/${c.max_uses}` : '/∞'}</span>
-                                <span className={styles.muted}>{c.valid_until ? new Date(c.valid_until).toLocaleDateString() : 'No expiry'}</span>
-                                <span className={`${styles.badge} ${c.is_active ? styles.badge_approved : styles.badge_rejected}`}>{c.is_active ? 'Active' : 'Disabled'}</span>
+                                <span className={styles.muted}>{c.uses || 0}{c.max_uses ? `/${c.max_uses}` : '/∞'}</span>
+                                <span className={styles.muted}>{c.expires_at ? new Date(c.expires_at).toLocaleDateString() : 'No expiry'}</span>
+                                <span className={`${styles.badge} ${c.active ? styles.badge_approved : styles.badge_rejected}`}>{c.active ? 'Active' : 'Disabled'}</span>
                                 <div style={{ display: 'flex', gap: '0.4rem' }}>
-                                    <button className={styles.approveBtn} onClick={() => handleToggle(c.id, c.is_active)}>{c.is_active ? 'Disable' : 'Enable'}</button>
+                                    <button className={styles.approveBtn} onClick={() => handleToggle(c.id, c.active)}>{c.active ? 'Disable' : 'Enable'}</button>
                                     <button className={styles.deleteBtn} onClick={() => handleDelete(c.id)}>Delete</button>
                                 </div>
                             </div>

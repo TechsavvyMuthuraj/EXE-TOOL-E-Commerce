@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 import styles from '../page.module.css';
 import { useModal } from '@/components/ui/PremiumModal';
 
-interface PricingTier { name: string; price: number; originalPrice?: number; licenseType: string; downloadLink?: string; paymentLink?: string; }
+interface PricingTier { name: string; price: number; originalPrice?: number; licenseType: string; downloadLink?: string; paymentLink?: string; couponPaymentLink?: string; }
 
 interface GalleryImage {
     assetId: string;
@@ -26,8 +26,8 @@ interface SanityDoc {
 
 const EMPTY_FORM = {
     title: '', slug: '', category: 'Optimization', shortDescription: '',
-    longDescription: '', tier1Name: 'Personal', tier1Price: '', tier1OriginalPrice: '', tier1Download: '', tier1PayLink: '',
-    tier2Name: 'Business', tier2Price: '', tier2OriginalPrice: '', tier2Download: '', tier2PayLink: ''
+    longDescription: '', tier1Name: 'Personal', tier1Price: '', tier1OriginalPrice: '', tier1Download: '', tier1PayLink: '', tier1CouponPayLink: '',
+    tier2Name: 'Business', tier2Price: '', tier2OriginalPrice: '', tier2Download: '', tier2PayLink: '', tier2CouponPayLink: ''
 };
 
 export default function AdminProductsPage() {
@@ -132,11 +132,13 @@ export default function AdminProductsPage() {
             tier1OriginalPrice: t1?.originalPrice?.toString() || '',
             tier1Download: t1?.downloadLink || '',
             tier1PayLink: t1?.paymentLink || '',
+            tier1CouponPayLink: t1?.couponPaymentLink || '',
             tier2Name: t2?.name || 'Business',
             tier2Price: t2?.price?.toString() || '',
             tier2OriginalPrice: t2?.originalPrice?.toString() || '',
             tier2Download: t2?.downloadLink || '',
             tier2PayLink: t2?.paymentLink || '',
+            tier2CouponPayLink: t2?.couponPaymentLink || '',
         });
         setFeatures(doc.features || []);
 
@@ -170,7 +172,7 @@ export default function AdminProductsPage() {
     const handleSave = async (e: React.FormEvent) => {
         e.preventDefault();
         setSaving(true); setMsg('');
-        const slug = form.slug || form.title.toLowerCase().replace(/\s+/g, '-');
+        const slug = form.slug || form.title.toLowerCase().trim().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
 
         const galleryPayload = gallery.map(img => ({
             _type: 'image',
@@ -192,7 +194,8 @@ export default function AdminProductsPage() {
                     ...(form.tier1OriginalPrice ? { originalPrice: Number(form.tier1OriginalPrice) } : {}),
                     licenseType: 'PER',
                     downloadLink: form.tier1Download,
-                    paymentLink: form.tier1PayLink
+                    paymentLink: form.tier1PayLink,
+                    couponPaymentLink: form.tier1CouponPayLink
                 },
                 ...(form.tier2Price ? [{
                     name: form.tier2Name,
@@ -200,7 +203,8 @@ export default function AdminProductsPage() {
                     ...(form.tier2OriginalPrice ? { originalPrice: Number(form.tier2OriginalPrice) } : {}),
                     licenseType: 'BUS',
                     downloadLink: form.tier2Download,
-                    paymentLink: form.tier2PayLink
+                    paymentLink: form.tier2PayLink,
+                    couponPaymentLink: form.tier2CouponPayLink
                 }] : [])
             ]
         };
@@ -258,6 +262,9 @@ export default function AdminProductsPage() {
                 <p className={styles.pageSub}>
                     {editId ? '✏️ Editing product details — setting custom payment links or download links.' : 'Manage your product catalog. Set custom payment links for direct checkouts.'}
                 </p>
+                <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', background: 'rgba(0,229,255,0.05)', color: 'var(--glow-cyan)', padding: '8px 12px', borderLeft: '3px solid var(--glow-cyan)', borderRadius: '4px' }}>
+                    💡 <strong>TIP:</strong> For custom payment links to update your dashboard, add <code>productId</code> and <code>tier</code> to the <strong>Notes</strong> section in your Razorpay Dashboard for that link.
+                </div>
             </div>
 
             {/* ── Form (Create / Edit) ─────────── */}
@@ -369,8 +376,12 @@ export default function AdminProductsPage() {
                                     <input value={form.tier1Download} onChange={f('tier1Download')} placeholder="https://..." style={{ fontFamily: 'monospace' }} />
                                 </div>
                                 <div className={styles.field}>
-                                    <label>💰 Custom Payment Link (Optional)</label>
+                                    <label>💰 Standard Payment Link (No Coupon)</label>
                                     <input value={form.tier1PayLink} onChange={f('tier1PayLink')} placeholder="Direct Checkout URL (Razorpay, Stripe, etc.)" style={{ fontFamily: 'monospace' }} />
+                                </div>
+                                <div className={styles.field}>
+                                    <label>🎟️ Coupon Payment Link (Special Offer)</label>
+                                    <input value={form.tier1CouponPayLink} onChange={f('tier1CouponPayLink')} placeholder="Direct Checkout URL for discounted price" style={{ fontFamily: 'monospace' }} />
                                 </div>
                             </div>
                         </div>
@@ -390,8 +401,12 @@ export default function AdminProductsPage() {
                                         <input value={form.tier2Download} onChange={f('tier2Download')} placeholder="https://..." style={{ fontFamily: 'monospace' }} />
                                     </div>
                                     <div className={styles.field}>
-                                        <label>💰 Custom Payment Link (Optional)</label>
+                                        <label>💰 Standard Payment Link (No Coupon)</label>
                                         <input value={form.tier2PayLink} onChange={f('tier2PayLink')} placeholder="Direct Checkout URL" style={{ fontFamily: 'monospace' }} />
+                                    </div>
+                                    <div className={styles.field}>
+                                        <label>🎟️ Coupon Payment Link</label>
+                                        <input value={form.tier2CouponPayLink} onChange={f('tier2CouponPayLink')} placeholder="Direct Checkout URL for coupon users" style={{ fontFamily: 'monospace' }} />
                                     </div>
                                 </div>
                             )}

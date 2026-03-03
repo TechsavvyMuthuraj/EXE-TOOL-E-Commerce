@@ -1,14 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { useCartStore } from '@/store/useCartStore';
 import { useEffect, useState } from 'react';
 import { supabase } from '@/lib/supabase';
 import styles from './Navbar.module.css';
 
 export default function Navbar() {
-    const items = useCartStore((state) => state.items);
-    const toggleDrawer = useCartStore((state) => state.toggleDrawer);
     const [mounted, setMounted] = useState(false);
     const [user, setUser] = useState<any>(null);
     const [menuOpen, setMenuOpen] = useState(false);
@@ -50,20 +47,17 @@ export default function Navbar() {
                         EXE<span className={styles.accent}> TOOL</span>
                     </Link>
 
-                    {/* Desktop nav links */}
                     <div className={styles.navLinks}>
                         <Link href="/products" className={styles.navLink}>All Tools</Link>
                         <Link href="/category/optimization" className={styles.navLink}>Optimization</Link>
-                        <Link href="/category/debloat" className={styles.navLink}>Debloat</Link>
+                        <Link href="/live-videos" className={styles.navLink}>Live Videos</Link>
+                        <Link href="/tutorials" className={styles.navLink}>Tutorials</Link>
                         <Link href="/blog" className={styles.navLink}>Blog</Link>
                         <Link href="/contact" className={styles.navLink}>Contact</Link>
                     </div>
 
                     {/* Desktop actions */}
                     <div className={styles.navActions}>
-                        <button className={styles.cartBtn} onClick={toggleDrawer}>
-                            Cart ({mounted ? items.length : 0})
-                        </button>
                         {mounted && user ? (
                             <Link href="/dashboard" className={`btn-primary ${styles.profileBtn}`}>
                                 <span className={styles.avatarIcon}>⚙</span> {user.email?.split('@')[0]}
@@ -95,20 +89,15 @@ export default function Navbar() {
                 <div className={styles.mobileDivider} />
                 <Link href="/category/optimization" className={styles.mobileLink} onClick={closeMenu}>Optimization</Link>
                 <div className={styles.mobileDivider} />
-                <Link href="/category/debloat" className={styles.mobileLink} onClick={closeMenu}>Debloat</Link>
+                <Link href="/live-videos" className={styles.mobileLink} onClick={closeMenu}>Live Videos</Link>
+                <div className={styles.mobileDivider} />
+                <Link href="/tutorials" className={styles.mobileLink} onClick={closeMenu}>Tutorials</Link>
                 <div className={styles.mobileDivider} />
                 <Link href="/blog" className={styles.mobileLink} onClick={closeMenu}>Blog</Link>
                 <div className={styles.mobileDivider} />
                 <Link href="/contact" className={styles.mobileLink} onClick={closeMenu}>Contact</Link>
 
                 <div className={styles.mobileActions}>
-                    <button
-                        className={styles.cartBtn}
-                        onClick={() => { toggleDrawer(); closeMenu(); }}
-                        style={{ fontSize: '1.1rem' }}
-                    >
-                        🛒 Cart ({mounted ? items.length : 0})
-                    </button>
                     {mounted && user ? (
                         <Link href="/dashboard" className="btn-primary" onClick={closeMenu} style={{ width: '100%', textAlign: 'center', justifyContent: 'center' }}>
                             ⚙ {user.email?.split('@')[0]}

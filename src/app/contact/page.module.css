@@ -1,7 +1,10 @@
 .page {
     display: flex;
     min-height: calc(100vh - 80px);
-    background: var(--background);
+    background: #0f1115;
+    /* Dark bluish theme from screenshot */
+    color: #fff;
+    font-family: var(--font-sans, system-ui, -apple-system, sans-serif);
 }
 
 .contactContainer {
@@ -18,77 +21,66 @@
     .contactContainer {
         grid-template-columns: 1fr 1fr;
         align-items: start;
+        gap: 6rem;
     }
 }
 
+/* Left Column - Contact Info */
 .leftColumn {
     display: flex;
     flex-direction: column;
-    gap: 2rem;
+    gap: 1.5rem;
 }
 
 .heading {
-    font-size: 4rem;
-    line-height: 1;
-    color: var(--foreground);
+    font-size: 2.5rem;
+    font-weight: 700;
+    line-height: 1.2;
     margin: 0;
-    text-transform: uppercase;
-    letter-spacing: -1px;
+    color: #fff;
 }
 
 .tagline {
-    font-size: 1.25rem;
-    color: var(--muted);
+    font-size: 1rem;
+    color: #aeb5be;
     line-height: 1.6;
-    max-width: 90%;
-}
-
-.infoCards {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    margin-top: 2rem;
-}
-
-.infoCard {
-    background: var(--card-bg);
-    border: 1px solid var(--border);
-    padding: 1.5rem;
-    border-radius: 4px;
-}
-
-.infoCard h3 {
-    color: var(--accent);
-    font-family: var(--font-heading);
-    text-transform: uppercase;
-    font-size: 0.9rem;
-    letter-spacing: 1px;
-    margin: 0 0 0.5rem 0;
-}
-
-.infoCard p {
-    color: var(--foreground);
     margin: 0;
-    font-size: 1.1rem;
 }
 
-.rightColumn {
-    background: var(--card-bg);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 3rem;
-    position: relative;
-    overflow: hidden;
+.emailLink {
+    color: #fff;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
 }
 
-.rightColumn::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
+.emailLink:hover {
+    color: var(--accent, #f5a623);
+}
+
+.imagePlaceholder {
+    margin-top: 1.5rem;
     width: 100%;
-    height: 2px;
-    background: linear-gradient(90deg, var(--accent) 0%, transparent 100%);
+    max-width: 350px;
+    aspect-ratio: 4/3;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #1a1d24;
+}
+
+.contactImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Right Column - Application Form */
+.rightColumn {
+    background: transparent;
+    border: 1px solid #2a2e37;
+    border-radius: 8px;
+    padding: 2.5rem;
 }
 
 .form {
@@ -100,74 +92,133 @@
 .inputGroup {
     display: flex;
     flex-direction: column;
-    position: relative;
 }
 
 .inputGroup label {
-    color: var(--muted);
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 1px;
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 500;
     margin-bottom: 0.5rem;
-    font-family: var(--font-heading);
 }
 
 .input {
-    background: rgba(0, 0, 0, 0.4);
-    border: 1px solid var(--border);
-    border-radius: 4px;
-    color: var(--foreground);
-    padding: 1rem;
-    font-size: 1rem;
-    font-family: inherit;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    background: #0f1115;
+    border: 1px solid #2a2e37;
+    border-radius: 6px;
+    color: #fff;
+    padding: 0.8rem 1rem;
+    font-size: 0.95rem;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.input::placeholder {
+    color: #636b78;
+}
+
+.input:focus {
+    outline: none;
+    border-color: #3b82f6;
+    /* Subtle blue focus like standard web */
+    background: #13161c;
 }
 
 .input:-webkit-autofill,
 .input:-webkit-autofill:hover,
 .input:-webkit-autofill:focus,
 .input:-webkit-autofill:active {
-    -webkit-box-shadow: 0 0 0 30px #1a1a1e inset !important;
-    -webkit-text-fill-color: var(--foreground) !important;
+    -webkit-box-shadow: 0 0 0 30px #13161c inset !important;
+    -webkit-text-fill-color: #fff !important;
     transition: background-color 5000s ease-in-out 0s;
-}
-
-.input:focus {
-    outline: none;
-    border-color: var(--accent);
-    box-shadow: 0 0 0 2px rgba(245, 166, 35, 0.1);
 }
 
 .honeypot {
     display: none !important;
 }
 
+.errorText {
+    color: #ff4444;
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+}
+
+/* Recaptcha Mock */
+.recaptchaMock {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #fff;
+    border: 1px solid #d3d3d3;
+    border-radius: 3px;
+    padding: 0.5rem 1rem;
+    max-width: 300px;
+    box-shadow: 0 0 4px rgba(0, 0, 0, 0.1);
+    color: #333;
+}
+
+.recaptchaLeft {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+}
+
+.recaptchaCheck {
+    width: 24px;
+    height: 24px;
+    accent-color: #4CAF50;
+    cursor: pointer;
+}
+
+.recaptchaLeft label {
+    font-size: 0.9rem;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.recaptchaRight {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+}
+
+.recaptchaRight span {
+    font-size: 0.6rem;
+    font-weight: 500;
+    color: #555;
+}
+
+.recaptchaRight small {
+    font-size: 0.5rem;
+    color: #777;
+}
+
+/* Submit Button */
 .submitBtn {
     margin-top: 1rem;
     width: 100%;
+    background: #3a3b3c;
+    color: #aeb5be;
+    border: none;
+    border-radius: 6px;
+    padding: 1rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s, color 0.2s;
+}
+
+.form:valid .submitBtn {
+    background: #e2e8f0;
+    color: #0f1115;
+}
+
+.submitBtn:hover:not(:disabled) {
+    background: #fff;
 }
 
 .submitBtn:disabled {
     opacity: 0.7;
     cursor: not-allowed;
-    transform: none;
-}
-
-.errorText {
-    color: #ff4444;
-    font-size: 0.85rem;
-    margin-top: 0.5rem;
-    font-family: var(--font-mono);
-}
-
-.charCount {
-    position: absolute;
-    bottom: 0.5rem;
-    right: 0.5rem;
-    font-size: 0.75rem;
-    font-family: var(--font-mono);
-    color: var(--muted);
-    pointer-events: none;
 }
 
 /* Success Card */
@@ -178,36 +229,23 @@
 
 .successIcon {
     font-size: 4rem;
-    color: var(--accent);
+    color: #4CAF50;
     margin-bottom: 1.5rem;
-}
-
-.ticketId {
-    background: rgba(0, 0, 0, 0.5);
-    border: 1px solid var(--border);
-    padding: 1rem;
-    border-radius: 4px;
-    font-family: var(--font-mono);
-    color: var(--accent);
-    letter-spacing: 2px;
-    margin: 1.5rem 0;
-    display: inline-block;
 }
 
 .newTicketBtn {
     margin-top: 2rem;
     background: transparent;
-    color: var(--muted);
-    border: 1px solid var(--border);
-    padding: 0.5rem 1rem;
+    color: #aeb5be;
+    border: 1px solid #2a2e37;
+    padding: 0.8rem 1.5rem;
+    border-radius: 6px;
     cursor: pointer;
-    font-family: var(--font-heading);
-    text-transform: uppercase;
-    font-size: 0.8rem;
+    font-size: 0.9rem;
     transition: all 0.2s;
 }
 
 .newTicketBtn:hover {
-    color: var(--foreground);
-    border-color: var(--accent);
+    color: #fff;
+    border-color: #636b78;
 }

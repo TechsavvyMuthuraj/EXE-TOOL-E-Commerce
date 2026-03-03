@@ -1,6 +1,7 @@
 'use client';
 import { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'next/navigation';
+import { slugify } from '@/lib/utils';
 import ProductCard from '@/components/ProductCard';
 import { allProducts, Product } from '@/data/products';
 import styles from '@/app/products/page.module.css';
@@ -11,7 +12,7 @@ function sanityToProduct(doc: any): Product {
     const firstTier = doc.pricingTiers?.[0];
     return {
         id: doc._id,
-        slug: doc.slug || doc._id,
+        slug: slugify(doc.title || doc._id),
         title: doc.title || 'Untitled',
         category: doc.category || 'Optimization',
         price: firstTier?.price ?? 0,

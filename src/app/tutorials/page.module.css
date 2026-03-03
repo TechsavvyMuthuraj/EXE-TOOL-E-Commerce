@@ -1,0 +1,430 @@
+/* Antigravity Tutorial Layout Styles */
+
+.void {
+    --void: #020508;
+}
+
+/* LAYOUT - Transparent to show global starfield */
+.layout {
+    position: relative;
+    z-index: 10;
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    min-height: 100vh;
+    background: transparent;
+    color: #d4e8ff;
+    font-family: var(--font-body);
+}
+
+@media (max-width: 768px) {
+    .layout {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* SIDEBAR */
+.sidebar {
+    position: sticky;
+    top: 80px;
+    left: 0;
+    bottom: 0;
+    height: calc(100vh - 80px);
+    z-index: 50;
+    padding: 32px 0;
+    border-right: 1px solid rgba(255, 184, 0, 0.15);
+    background: linear-gradient(180deg, rgba(6, 13, 22, 0.8) 0%, rgba(2, 5, 8, 0.9) 100%);
+    backdrop-filter: blur(20px);
+    overflow-y: auto;
+}
+
+@media (max-width: 768px) {
+    .sidebar {
+        display: none;
+    }
+}
+
+.sidebarTitle {
+    font-family: var(--font-heading);
+    font-size: 0.6rem;
+    letter-spacing: 4px;
+    color: #FFB800;
+    text-transform: uppercase;
+    padding: 0 24px 20px;
+    border-bottom: 1px solid rgba(255, 184, 0, 0.15);
+    margin-bottom: 16px;
+}
+
+.sidebarItem {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 24px;
+    color: #6a8ab0;
+    font-size: 0.85rem;
+    transition: all 0.2s;
+    position: relative;
+    text-decoration: none;
+    border-left: 2px solid transparent;
+}
+
+.sidebarItem::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgba(255, 184, 0, 0.05) 0%, transparent 100%);
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.sidebarItem:hover {
+    color: #d4e8ff;
+    border-left-color: #FFB800;
+}
+
+.sidebarItem:hover::before {
+    opacity: 1;
+}
+
+.sidebarItemActive {
+    color: #d4e8ff;
+    border-left-color: #FFB800;
+}
+
+.sidebarItemActive::before {
+    opacity: 1;
+}
+
+.sidebarNum {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    color: #FFB800;
+    opacity: 0.6;
+    min-width: 18px;
+}
+
+/* MAIN CONTENT */
+.main {
+    padding: 60px 80px 80px;
+    max-width: 1000px;
+    width: 100%;
+    position: relative;
+    z-index: 10;
+}
+
+@media (max-width: 768px) {
+    .main {
+        padding: 40px 24px;
+    }
+}
+
+/* HERO IMAGE */
+.heroImageWrap {
+    position: relative;
+    margin-bottom: 60px;
+    animation: levitate 6s ease-in-out infinite;
+}
+
+@keyframes levitate {
+
+    0%,
+    100% {
+        transform: translateY(0px) rotateX(0deg);
+    }
+
+    50% {
+        transform: translateY(-16px) rotateX(2deg);
+    }
+}
+
+.heroImageWrap::before {
+    content: '';
+    position: absolute;
+    bottom: -30px;
+    left: 10%;
+    right: 10%;
+    height: 40px;
+    background: radial-gradient(ellipse, rgba(255, 184, 0, 0.3) 0%, transparent 70%);
+    filter: blur(15px);
+    animation: shadowPulse 6s ease-in-out infinite;
+}
+
+@keyframes shadowPulse {
+
+    0%,
+    100% {
+        transform: scaleX(1);
+        opacity: 1;
+    }
+
+    50% {
+        transform: scaleX(0.7);
+        opacity: 0.4;
+    }
+}
+
+.heroImage {
+    width: 100%;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 184, 0, 0.2);
+    position: relative;
+    z-index: 1;
+    box-shadow: 0 0 60px rgba(255, 184, 0, 0.1), 0 0 120px rgba(0, 100, 200, 0.15);
+}
+
+.heroScanline {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    background: repeating-linear-gradient(0deg, transparent, transparent 3px, rgba(0, 0, 0, 0.08) 3px, rgba(0, 0, 0, 0.08) 4px);
+    border-radius: 4px;
+    pointer-events: none;
+}
+
+.heroCorner {
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    z-index: 3;
+    border: 2px solid transparent;
+}
+
+.heroCornerTl {
+    top: -1px;
+    left: -1px;
+    border-top-color: #FFB800;
+    border-left-color: #FFB800;
+}
+
+.heroCornerTr {
+    top: -1px;
+    right: -1px;
+    border-top-color: #FFB800;
+    border-right-color: #FFB800;
+}
+
+.heroCornerBl {
+    bottom: -1px;
+    left: -1px;
+    border-bottom-color: #FFB800;
+    border-left-color: #FFB800;
+}
+
+.heroCornerBr {
+    bottom: -1px;
+    right: -1px;
+    border-bottom-color: #FFB800;
+    border-right-color: #FFB800;
+}
+
+/* TITLE SECTION */
+.pageTitle {
+    font-family: var(--font-heading);
+    font-size: clamp(2.5rem, 4vw, 3.5rem);
+    font-weight: 900;
+    line-height: 1.1;
+    letter-spacing: 2px;
+    color: #d4e8ff;
+    margin-bottom: 20px;
+}
+
+.pageTitleAccent {
+    color: #FFB800;
+    position: relative;
+}
+
+.pageTitleAccent::after {
+    content: '';
+    position: absolute;
+    bottom: -4px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #FFB800, transparent);
+}
+
+.pageDesc {
+    font-size: 1.15rem;
+    line-height: 1.7;
+    color: #6a8ab0;
+    max-width: 800px;
+    margin-bottom: 60px;
+}
+
+/* CARDS */
+.card {
+    position: relative;
+    background: rgba(15, 31, 56, 0.5);
+    border: 1px solid rgba(255, 184, 0, 0.15);
+    border-radius: 8px;
+    padding: 48px;
+    overflow: hidden;
+    backdrop-filter: blur(10px);
+}
+
+@media (max-width: 600px) {
+    .card {
+        padding: 30px 20px;
+    }
+}
+
+.cardTitle {
+    font-family: var(--font-heading);
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: #fff;
+    text-transform: uppercase;
+}
+
+.cardBody {
+    font-size: 1.05rem;
+    line-height: 1.75;
+    color: #6a8ab0;
+    margin-bottom: 36px;
+}
+
+/* STEPS */
+.steps {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 48px;
+}
+
+.step {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 20px 24px;
+    background: rgba(255, 184, 0, 0.03);
+    border: 1px solid rgba(255, 184, 0, 0.08);
+    border-left: 2px solid #FFB800;
+    transition: all 0.25s;
+}
+
+.step:hover {
+    border-left-color: #ffd040;
+    transform: translateX(8px);
+    background: rgba(255, 184, 0, 0.06);
+}
+
+.stepNum {
+    font-family: var(--font-heading);
+    font-size: 1.4rem;
+    font-weight: 900;
+    color: #FFB800;
+    opacity: 0.5;
+}
+
+.stepText {
+    font-size: 1.05rem;
+    line-height: 1.65;
+    color: #6a8ab0;
+}
+
+/* CTA BUTTON */
+.ctaBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    padding: 18px 40px;
+    background: #FFB800;
+    color: #020508;
+    font-family: var(--font-heading);
+    font-size: 0.85rem;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    border: none;
+    text-decoration: none;
+    clip-path: polygon(12px 0%, 100% 0%, calc(100% - 12px) 100%, 0% 100%);
+    transition: all 0.25s;
+    position: relative;
+    overflow: hidden;
+}
+
+.ctaBtn:hover {
+    background: #ffd040;
+    transform: translateY(-3px);
+    box-shadow: 0 12px 40px rgba(255, 184, 0, 0.35);
+}
+
+/* ALL COURSES DIRECTORY STYLES (for /tutorials) */
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 2.5rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.cardImageContainer {
+    width: calc(100% + 4.1rem);
+    height: 180px;
+    margin: -3.1rem -2.1rem 1.5rem -2.1rem;
+    position: relative;
+    overflow: hidden;
+    border-bottom: 1px solid rgba(255, 184, 0, 0.1);
+}
+
+.cardImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.card:hover .cardImage {
+    transform: scale(1.05);
+}
+
+.shimmerBtn {
+    padding: 0.8rem 1.5rem;
+    border-radius: 4px;
+    font-weight: 600;
+    transition: all 0.2s;
+    font-family: var(--font-heading);
+}
+
+.shimmerBtn:hover {
+    background: var(--accent);
+    color: #000;
+}
+
+.shimmerBtn.startBtn {
+    border-color: var(--accent);
+    color: var(--accent);
+}
+
+.navBar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 4rem;
+    padding-top: 2rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.navBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem 1.5rem;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #fff;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    transition: all 0.3s;
+    font-family: var(--font-heading);
+    text-transform: uppercase;
+    clip-path: polygon(8px 0%, 100% 0%, calc(100% - 8px) 100%, 0% 100%);
+}
+
+.navBtn:hover {
+    background: #FFB800;
+    border-color: #FFB800;
+    color: #020508;
+    font-weight: bold;
+}

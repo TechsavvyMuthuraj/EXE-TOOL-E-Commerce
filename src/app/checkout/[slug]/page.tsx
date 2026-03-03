@@ -4,15 +4,17 @@ import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import Link from 'next/link';
+import { slugify } from '@/lib/utils';
 import styles from '../page.module.css';
 
 export default function DirectCheckoutPage({ params, searchParams }: {
     params: Promise<{ slug: string }>;
-    searchParams: Promise<{ tier?: string }>;
+    searchParams: Promise<{ tier?: string; coupon?: string }>;
 }) {
     const { slug } = use(params);
     const sp = use(searchParams);
     const tierName = sp.tier || '';
+    const couponFromUrl = sp.coupon || '';
 
     const router = useRouter();
     const [status, setStatus] = useState<'loading' | 'redirecting' | 'no_link' | 'no_product' | 'auth_required' | 'error'>('loading');
@@ -34,7 +36,7 @@ export default function DirectCheckoutPage({ params, searchParams }: {
                 const res = await fetch('/api/products');
                 const data = await res.json();
                 const match = (data.products || []).find(
-                    (p: any) => p.slug === slug || p._id === slug
+                    (p: any) => p.slug === slug || p._id === slug || slugify(p.title) === slug
                 );
 
                 if (!match) {
@@ -59,11 +61,41 @@ export default function DirectCheckoutPage({ params, searchParams }: {
                 }
                 setSelectedTier(tier);
 
+                // 3.5 Check coupon if provided
+                let hasValidCoupon = false;
+                let couponDiscountPerc = 0;
+                if (couponFromUrl) {
+                    const cRes = await fetch('/api/coupon/validate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ code: couponFromUrl, cartItems: [{ productId: match._id, price: tier.price }] })
+                    });
+                    const cData = await cRes.json();
+                    if (cData.success) {
+                        hasValidCoupon = true;
+                        couponDiscountPerc = cData.discountPercentage;
+                    }
+                }
+
+                // 3.7 Fetch Site Settings (for dynamic handle)
+                const settingsRes = await fetch('/api/admin/sanity?type=siteSettings');
+                const settingsData = await settingsRes.json();
+                const settings = settingsData.documents?.[0];
+                const handle = settings?.razorpayHandle;
+
                 // 4. Redirect to payment link if available
-                if (tier.paymentLink) {
+                let finalLink = hasValidCoupon ? (tier.couponPaymentLink || tier.paymentLink) : tier.paymentLink;
+
+                // Fallback to Dynamic Razorpay.me handle if no specific link is found
+                if (!finalLink && handle) {
+                    const price = hasValidCoupon ? Math.round(tier.price * (1 - couponDiscountPerc / 100)) : tier.price;
+                    finalLink = `https://razorpay.me/@${handle}/${price}`;
+                }
+
+                if (finalLink) {
                     setStatus('redirecting');
                     setTimeout(() => {
-                        window.location.href = tier.paymentLink;
+                        window.location.href = finalLink;
                     }, 1200);
                 } else {
                     setStatus('no_link');
@@ -75,7 +107,7 @@ export default function DirectCheckoutPage({ params, searchParams }: {
         };
 
         run();
-    }, [slug, tierName]);
+    }, [slug, tierName, couponFromUrl]);
 
     if (status === 'auth_required') {
         return (

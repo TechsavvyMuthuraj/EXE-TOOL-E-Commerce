@@ -6,8 +6,7 @@
 
 /* ── HERO ── */
 .hero {
-  padding: 12rem 0 8rem;
-  border-bottom: 1px solid var(--border);
+  padding: 14rem 0 10rem;
   position: relative;
   overflow: hidden;
 }
@@ -30,6 +29,7 @@
   line-height: 1.1;
   text-transform: uppercase;
   font-family: var(--font-heading);
+  text-shadow: 0 0 30px rgba(255, 184, 0, 0.3);
 }
 
 .heroSubtitle {
@@ -45,6 +45,88 @@
   margin-top: 2rem;
 }
 
+/* ── GRID SYSTEM ── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+/* ── CARDS ── */
+.productCard,
+.tutorialCard {
+  background: rgba(15, 31, 56, 0.5);
+  border: 1px solid rgba(255, 184, 0, 0.1);
+  border-radius: 12px;
+  padding: 2rem;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  position: relative;
+  overflow: hidden;
+}
+
+.productCard:hover,
+.tutorialCard:hover {
+  transform: translateY(-5px);
+  background: rgba(15, 31, 56, 0.8);
+  border-color: var(--accent);
+  box-shadow: 0 10px 30px rgba(255, 184, 0, 0.1);
+}
+
+.productImg {
+  width: 100%;
+  height: 200px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.productTitle,
+.tutorialTitle {
+  font-family: var(--font-heading);
+  font-size: 1.5rem;
+  color: #fff;
+}
+
+.productDesc,
+.tutorialDesc {
+  font-size: 0.9rem;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.productPrice {
+  font-family: var(--font-mono);
+  font-size: 0.9rem;
+  margin-top: auto;
+}
+
+.accent {
+  color: var(--accent);
+  font-weight: bold;
+}
+
+.tutorialLabel {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+  width: fit-content;
+  padding: 2px 8px;
+  border-radius: 4px;
+}
+
+.tutorialLink {
+  color: var(--accent);
+  font-size: 0.9rem;
+  font-weight: 600;
+  margin-top: auto;
+}
+
 /* ── PROCESS STEPS ── */
 .stepsSection {
   padding: 8rem 2rem;
@@ -56,6 +138,8 @@
   margin-bottom: 4rem;
   letter-spacing: 0.02em;
   color: var(--foreground);
+  font-family: var(--font-heading);
+  text-transform: uppercase;
 }
 
 .stepsGrid {
@@ -85,6 +169,8 @@
 .sidebarTitle {
   font-size: 2.5rem;
   margin-bottom: 3rem;
+  font-family: var(--font-heading);
+  text-transform: uppercase;
 }
 
 .statsGrid {
@@ -100,7 +186,8 @@
 }
 
 .statNumber {
-  font-family: var(--font-bebas);
+  font-family: var(--font-heading);
+  /* Switch to orbitron */
   font-size: 3.5rem;
   color: var(--accent);
   line-height: 1;
@@ -125,6 +212,7 @@
   background: var(--card-bg);
   border: 1px solid var(--border);
   padding: 1.5rem;
+  backdrop-filter: blur(10px);
 }
 
 .tocSubtitle {
@@ -152,41 +240,6 @@
   padding: 8rem 2rem;
 }
 
-.reviewsGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-  gap: 2rem;
-}
-
-.reviewCard {
-  background: transparent;
-  border: 1px solid var(--border);
-  padding: 3rem;
-  position: relative;
-}
-
-.reviewStars {
-  color: var(--accent);
-  letter-spacing: 3px;
-  margin-bottom: 1.5rem;
-}
-
-.reviewBody {
-  font-size: 1.1rem;
-  line-height: 1.8;
-  color: var(--foreground);
-  font-style: italic;
-  font-family: var(--font-heading);
-  margin-bottom: 2rem;
-}
-
-.reviewerName {
-  font-size: 0.85rem;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: var(--muted);
-}
-
 @media (max-width: 900px) {
   .twoColumn {
     grid-template-columns: 1fr;
@@ -201,10 +254,6 @@
   }
 
   .stepsGrid {
-    grid-template-columns: 1fr;
-  }
-
-  .reviewsGrid {
     grid-template-columns: 1fr;
   }
 }
@@ -252,10 +301,6 @@
 
   .statNumber {
     font-size: 2.5rem;
-  }
-
-  .reviewCard {
-    padding: 1.5rem;
   }
 }
 

@@ -1,23 +1,24 @@
 import type { Metadata } from "next";
-import { Playfair_Display, JetBrains_Mono, Bebas_Neue } from "next/font/google";
+import { Exo_2, Orbitron, Share_Tech_Mono } from "next/font/google";
 import ClientShell from "@/components/layout/ClientShell";
 import PageTransition from "@/components/layout/PageTransition";
+import AntigravityBackground from "@/components/layout/AntigravityBackground";
 import "./globals.css";
 
-const playfair = Playfair_Display({
-  variable: "--font-heading",
+const exo = Exo_2({
+  variable: "--font-exo2",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+  weight: ["300", "400", "600"],
 });
 
-const jetbrains = JetBrains_Mono({
-  variable: "--font-body",
+const orbitron = Orbitron({
+  variable: "--font-orbitron",
   subsets: ["latin"],
-  weight: ["400", "500", "700"],
+  weight: ["400", "700", "900"],
 });
 
-const bebas = Bebas_Neue({
-  variable: "--font-bebas",
+const shareTech = Share_Tech_Mono({
+  variable: "--font-sharetech",
   subsets: ["latin"],
   weight: ["400"],
 });
@@ -34,7 +35,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${playfair.variable} ${jetbrains.variable} ${bebas.variable}`}>
+      <body className={`${exo.variable} ${orbitron.variable} ${shareTech.variable}`}>
+        <AntigravityBackground />
         <ClientShell>
           <PageTransition>
             {children}

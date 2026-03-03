@@ -7,26 +7,16 @@ export default function ContactPage() {
     const [formData, setFormData] = useState({
         name: '',
         email: '',
-        subject: 'General Inquiry',
-        product: '',
+        phone: '',
+        subject: '',
         message: '',
         honeypot: '', // anti-spam
     });
 
     const [status, setStatus] = useState<'IDLE' | 'LOADING' | 'SUCCESS' | 'ERROR'>('IDLE');
     const [errorMessage, setErrorMessage] = useState('');
-    const [ticketId, setTicketId] = useState('');
 
-    const subjects = [
-        'General Inquiry',
-        'Technical Support',
-        'License Issue',
-        'Partnership',
-        'Billing',
-        'Other'
-    ];
-
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setFormData((prev) => ({
             ...prev,
             [e.target.name]: e.target.value
@@ -38,10 +28,9 @@ export default function ContactPage() {
         setStatus('LOADING');
         setErrorMessage('');
 
-        // Basic client-side validation
-        if (formData.message.length < 20) {
+        if (formData.message.length < 10) {
             setStatus('ERROR');
-            setErrorMessage('Message must be at least 20 characters long.');
+            setErrorMessage('Message must be at least 10 characters long.');
             return;
         }
 
@@ -60,7 +49,6 @@ export default function ContactPage() {
                 throw new Error(data.error || 'Transmission failed.');
             }
 
-            setTicketId(data.ticketId || 'TKT-MOCK');
             setStatus('SUCCESS');
         } catch (error: any) {
             setStatus('ERROR');
@@ -74,24 +62,25 @@ export default function ContactPage() {
 
                 {/* Left Column - Contact Info */}
                 <div className={styles.leftColumn}>
-                    <h1 className={styles.heading}>Direct<br />Transmission</h1>
+                    <h1 className={styles.heading}>Contact Us</h1>
                     <p className={styles.tagline}>
-                        System architects are standing by. Transmit your logs, inquiries, or feedback below.
+                        We are available for questions, feedback, or collaboration opportunities. Let us know how we can help!
+                    </p>
+                    <p className={styles.tagline}>
+                        You can also contact us at <br />
+                        <a href="mailto:techsavvy.muthuraj.dev@gmail.com" className={styles.emailLink}>techsavvy.muthuraj.dev@gmail.com</a> for any payment or course access related queries.
                     </p>
 
-                    <div className={styles.infoCards}>
-                        <div className={styles.infoCard}>
-                            <h3>Est. Response Velocity</h3>
-                            <p>&lt; 24 Hours (Standard Queue)</p>
-                        </div>
-                        <div className={styles.infoCard}>
-                            <h3>Direct Email Bypass</h3>
-                            <p>support@exe-tool.com</p>
-                        </div>
-                        <div className={styles.infoCard}>
-                            <h3>Command Center Hours</h3>
-                            <p>0900 - 1800 UTC (Mon-Fri)</p>
-                        </div>
+                    <div className={styles.imagePlaceholder}>
+                        <img
+                            src="https://i.ibb.co/tPPbT9WD/Muthuraj-C.jpg" alt="Muthuraj C"
+
+                            className={styles.contactImage}
+                            onError={(e) => {
+                                // Fallback if image doesn't exist
+                                (e.target as HTMLImageElement).src = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300"><rect width="400" height="300" fill="%231a1a1a"/><text x="50%" y="50%" dominant-baseline="middle" text-anchor="middle" fill="%23333" font-family="sans-serif" font-size="20">Image Placeholder</text></svg>';
+                            }}
+                        />
                     </div>
                 </div>
 
@@ -100,24 +89,18 @@ export default function ContactPage() {
                     {status === 'SUCCESS' ? (
                         <div className={styles.successCard}>
                             <div className={styles.successIcon}>✓</div>
-                            <h2>Transmission Received</h2>
+                            <h2>Message Sent</h2>
                             <p className={styles.tagline} style={{ margin: '1rem auto' }}>
-                                Your request has been logged into the EXE TOOL system.
-                                An automated confirmation has been dispatched to <strong>{formData.email}</strong>.
+                                Your message has been sent successfully. We will get back to you soon.
                             </p>
-
-                            <div className={styles.ticketId}>
-                                TICKET REF: {ticketId}
-                            </div>
-
                             <button
                                 className={styles.newTicketBtn}
                                 onClick={() => {
                                     setStatus('IDLE');
-                                    setFormData({ ...formData, message: '', subject: 'General Inquiry' });
+                                    setFormData({ name: '', email: '', phone: '', subject: '', message: '', honeypot: '' });
                                 }}
                             >
-                                Open New Ticket
+                                Send Another Message
                             </button>
                         </div>
                     ) : (
@@ -135,7 +118,7 @@ export default function ContactPage() {
                             />
 
                             <div className={styles.inputGroup}>
-                                <label htmlFor="name">Operator Designation (Full Name)</label>
+                                <label htmlFor="name">Name</label>
                                 <input
                                     type="text"
                                     id="name"
@@ -144,12 +127,12 @@ export default function ContactPage() {
                                     className={styles.input}
                                     value={formData.name}
                                     onChange={handleInputChange}
-                                    placeholder="e.g. John Doe"
+                                    placeholder="Your Name"
                                 />
                             </div>
 
                             <div className={styles.inputGroup}>
-                                <label htmlFor="email">Return Signal Address (Email)</label>
+                                <label htmlFor="email">Email</label>
                                 <input
                                     type="email"
                                     id="email"
@@ -158,68 +141,77 @@ export default function ContactPage() {
                                     className={styles.input}
                                     value={formData.email}
                                     onChange={handleInputChange}
-                                    placeholder="operator@system.io"
+                                    placeholder="Email"
                                 />
                             </div>
 
                             <div className={styles.inputGroup}>
-                                <label htmlFor="subject">Transmission Category (Subject)</label>
-                                <select
+                                <label htmlFor="phone">Phone Number</label>
+                                <input
+                                    type="tel"
+                                    id="phone"
+                                    name="phone"
+                                    className={styles.input}
+                                    value={formData.phone}
+                                    onChange={handleInputChange}
+                                    placeholder="Your 10-digit Indian Number"
+                                />
+                            </div>
+
+                            <div className={styles.inputGroup}>
+                                <label htmlFor="subject">Subject</label>
+                                <input
+                                    type="text"
                                     id="subject"
                                     name="subject"
                                     required
                                     className={styles.input}
                                     value={formData.subject}
                                     onChange={handleInputChange}
-                                >
-                                    {subjects.map(s => <option key={s} value={s}>{s}</option>)}
-                                </select>
-                            </div>
-
-                            <div className={styles.inputGroup}>
-                                <label htmlFor="product">Reference Asset (Optional Product)</label>
-                                <input
-                                    type="text"
-                                    id="product"
-                                    name="product"
-                                    className={styles.input}
-                                    value={formData.product}
-                                    onChange={handleInputChange}
-                                    placeholder="e.g. Nexus Engine Pro"
+                                    placeholder="Subject"
                                 />
                             </div>
 
-                            <div className={styles.inputGroup} style={{ position: 'relative' }}>
-                                <label htmlFor="message">Diagnostic Logs (Message Body)</label>
+                            <div className={styles.inputGroup}>
+                                <label htmlFor="message">Message</label>
                                 <textarea
                                     id="message"
                                     name="message"
                                     required
                                     rows={5}
-                                    minLength={20}
                                     className={styles.input}
                                     value={formData.message}
                                     onChange={handleInputChange}
-                                    placeholder="Describe your system event, required support, or inquiry in detail..."
+                                    placeholder="Type your message here."
                                     style={{ resize: 'vertical' }}
                                 />
-                                <span className={styles.charCount}>
-                                    {formData.message.length} / Min 20
-                                </span>
                             </div>
 
                             {status === 'ERROR' && (
                                 <div className={styles.errorText}>
-                                    ⚠️ System Fault: {errorMessage}
+                                    ⚠️ {errorMessage}
                                 </div>
                             )}
 
+                            {/* Fake reCAPTCHA */}
+                            <div className={styles.recaptchaMock}>
+                                <div className={styles.recaptchaLeft}>
+                                    <input type="checkbox" id="recaptcha-check" className={styles.recaptchaCheck} required />
+                                    <label htmlFor="recaptcha-check">I'm not a robot</label>
+                                </div>
+                                <div className={styles.recaptchaRight}>
+                                    <img src="https://www.gstatic.com/recaptcha/api2/logo_48.png" alt="reCAPTCHA" width="32" />
+                                    <span>reCAPTCHA</span>
+                                    <small>Privacy - Terms</small>
+                                </div>
+                            </div>
+
                             <button
                                 type="submit"
-                                className={`btn-primary ${styles.submitBtn}`}
+                                className={styles.submitBtn}
                                 disabled={status === 'LOADING'}
                             >
-                                {status === 'LOADING' ? 'Uplinking Data...' : 'Transmit Payload'}
+                                {status === 'LOADING' ? 'Sending...' : 'Send Message'}
                             </button>
                         </form>
                     )}

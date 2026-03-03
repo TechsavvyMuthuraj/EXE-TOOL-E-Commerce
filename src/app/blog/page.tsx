@@ -68,14 +68,10 @@ export default function BlogPage() {
     const fetchPosts = useCallback(async () => {
         try {
             const res = await fetch('/api/blog', { cache: 'no-store' });
+            if (!res.ok) throw new Error('Failed to fetch');
             const data = await res.json();
-            if (data.posts && data.posts.length > 0) {
-                setPosts(data.posts);
-                setUsingFallback(false);
-            } else {
-                setPosts(FALLBACK_POSTS);
-                setUsingFallback(true);
-            }
+            setPosts(data.posts || []);
+            setUsingFallback(false);
         } catch {
             setPosts(FALLBACK_POSTS);
             setUsingFallback(true);
@@ -96,10 +92,6 @@ export default function BlogPage() {
         <div className={`container ${styles.page}`}>
             <div className={styles.header}>
                 <div>
-                    <h1>PC Tips &amp; Guides</h1>
-                    <p className={styles.subtitle}>
-                        Windows optimization tutorials, debloat guides, and tech deep-dives from Muthuraj C.
-                    </p>
                 </div>
                 <div style={{ textAlign: 'right' }}>
                     {!usingFallback && !loading && (
@@ -121,6 +113,10 @@ export default function BlogPage() {
             {loading ? (
                 <div className={styles.postsList} style={{ color: 'var(--muted)', padding: '3rem 0' }}>
                     ⏳ Loading articles...
+                </div>
+            ) : posts.length === 0 ? (
+                <div className={styles.postsList} style={{ color: 'var(--muted)', padding: '3rem 0' }}>
+                    No blog posts published yet.
                 </div>
             ) : (
                 <div className={styles.postsList}>

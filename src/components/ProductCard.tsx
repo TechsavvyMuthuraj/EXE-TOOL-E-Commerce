@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useCompareStore } from '@/store/useCompareStore';
+import { slugify } from '@/lib/utils';
 import styles from './ProductCard.module.css';
 
 interface ProductCardProps {
@@ -30,7 +31,7 @@ export default function ProductCard({ id = '', title, category, price, image, sl
     };
     return (
         <div className={styles.card}>
-            <Link href={`/products/${slug}`} className={styles.imageWrapper}>
+            <Link href={`/products/${encodeURIComponent(slug)}`} className={styles.imageWrapper}>
                 <div
                     className={styles.placeholderImage}
                     style={{
@@ -59,7 +60,7 @@ export default function ProductCard({ id = '', title, category, price, image, sl
                     <span className={styles.category}>{category}</span>
                     <span className={`pricing-code ${styles.price}`}>₹{price}</span>
                 </div>
-                <Link href={`/products/${slug}`}>
+                <Link href={`/products/${encodeURIComponent(slug)}`}>
                     <h3 className={styles.title}>{title}</h3>
                 </Link>
                 <button

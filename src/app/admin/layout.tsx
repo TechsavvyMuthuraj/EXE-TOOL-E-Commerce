@@ -13,6 +13,7 @@ const navItems = [
     { href: '/admin', label: '⬛ Dashboard', exact: true },
     { href: '/admin/products', label: '📦 Products' },
     { href: '/admin/blogs', label: '✏️ Blog Posts' },
+    { href: '/admin/tutorials', label: '📚 Tutorials' },
     { href: '/admin/coupons', label: '🏷️ Coupons' },
     { href: '/admin/email', label: '📧 Email Blast' },
     { href: '/admin/reviews', label: '⭐ Reviews' },
@@ -20,6 +21,7 @@ const navItems = [
     { href: '/admin/licenses', label: '🔑 Licenses' },
     { href: '/admin/orders', label: '📋 Orders' },
     { href: '/admin/pay-links', label: '🔗 Payment Links' },
+    { href: '/admin/videos', label: '🎥 Live Videos' },
 ];
 
 function SidebarSocialBanner() {

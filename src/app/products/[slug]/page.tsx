@@ -5,6 +5,7 @@ import { useCartStore } from '@/store/useCartStore';
 import { sanityClient } from '@/lib/sanity';
 import { getProductBySlug } from '@/data/products';
 import ReviewSection from '@/components/ReviewSection';
+import { slugify } from '@/lib/utils';
 import styles from './page.module.css';
 
 export default function ProductDetailPage({ params }: { params: Promise<{ slug: string }> }) {
@@ -15,8 +16,38 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
     const [isLoading, setIsLoading] = useState(true);
     const { addItem, openDrawer } = useCartStore();
 
+    const [couponCode, setCouponCode] = useState('');
+    const [couponDiscount, setCouponDiscount] = useState(0);
+    const [couponMsg, setCouponMsg] = useState('');
+
+    const validateCoupon = async () => {
+        if (!couponCode) return;
+        setCouponMsg('Validating...');
+        try {
+            const res = await fetch('/api/coupon/validate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    code: couponCode,
+                    cartItems: [{ productId: product?.id, price: selectedTier?.price }]
+                })
+            });
+            const data = await res.json();
+            if (data.success) {
+                setCouponDiscount(data.discountPercentage);
+                setCouponMsg(`✓ ${data.discountPercentage}% discount applied!`);
+            } else {
+                setCouponDiscount(0);
+                setCouponMsg(`⚠ ${data.error}`);
+            }
+        } catch (err) {
+            setCouponMsg('Error validating coupon');
+        }
+    };
+
     useEffect(() => {
         setIsLoading(true);
+        setCouponCode(''); setCouponDiscount(0); setCouponMsg('');
 
         async function fetchProduct() {
             // ── 1. Try Sanity CDN (via sanityClient) ──────────────────────────
@@ -24,7 +55,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
                 const query = `*[_type == "product" && slug.current == $slug][0] {
                     _id, title, "slug": slug.current, category, shortDescription,
                     longDescription, features,
-                    pricingTiers[] { name, price, originalPrice, licenseType, downloadLink, paymentLink },
+                    pricingTiers[] { name, price, originalPrice, licenseType, downloadLink, paymentLink, couponPaymentLink },
                     "imageUrl": mainImage.asset->url,
                     "gallery": gallery[].asset->url
                 }`;
@@ -58,7 +89,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
                 const res = await fetch('/api/products');
                 const apiData = await res.json();
                 const match = (apiData.products || []).find(
-                    (p: any) => p.slug === slug || p._id === slug
+                    (p: any) => p.slug === slug || p._id === slug || slugify(p.title) === slug
                 );
                 if (match) {
                     const firstTier = match.pricingTiers?.[0] || null;
@@ -103,9 +134,34 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
         fetchProduct();
     }, [slug]);
 
-    const handleBuyNow = () => {
+    const handleBuyNow = async () => {
         if (!product || !selectedTier) return;
-        const checkoutUrl = `/checkout/${product.slug}?tier=${encodeURIComponent(selectedTier.name)}`;
+
+        // FETCH SITE SETTINGS for dynamic handle fallback
+        const settingsRes = await fetch('/api/admin/sanity?type=siteSettings');
+        const settingsData = await settingsRes.json();
+        const handle = settingsData.documents?.[0]?.razorpayHandle;
+
+        let finalLink = (couponDiscount > 0 && selectedTier.couponPaymentLink)
+            ? selectedTier.couponPaymentLink
+            : selectedTier.paymentLink;
+
+        // INSTANT REDIRECT for razorpay.me handle or specific link
+        if (finalLink || handle) {
+            if (!finalLink && handle) {
+                const finalPrice = Math.round(selectedTier.price * (1 - couponDiscount / 100));
+                finalLink = `https://razorpay.me/@${handle}/${finalPrice}`;
+            }
+
+            if (finalLink) {
+                window.location.href = finalLink;
+                return;
+            }
+        }
+
+        const robustSlug = slugify(product.title);
+        const couponParam = (couponCode && couponDiscount > 0) ? `&coupon=${encodeURIComponent(couponCode)}` : '';
+        const checkoutUrl = `/checkout/${robustSlug}?tier=${encodeURIComponent(selectedTier.name)}${couponParam}`;
         window.location.href = checkoutUrl;
     };
 
@@ -119,9 +175,10 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
             title: product.title,
             price: selectedTier.price,
             licenseTier: selectedTier.name,
-            image: product.mainImageUrl || '',
+            image: product.imageUrl || '',
             downloadLink: selectedTier.downloadLink,
-            paymentLink: selectedTier.paymentLink
+            paymentLink: selectedTier.paymentLink,
+            couponPaymentLink: selectedTier.couponPaymentLink
         });
         openDrawer();
     };
@@ -212,19 +269,73 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
                             <div className={styles.selectedPrice}>
                                 <div className={styles.priceLabel}>Price for {selectedTier.name}</div>
                                 <div className={styles.finalPrice}>
-                                    {selectedTier.originalPrice && (
+                                    {(selectedTier.originalPrice || (couponDiscount > 0)) && (
                                         <span style={{ textDecoration: 'line-through', color: 'var(--muted)', fontSize: '0.6em', marginRight: '0.5rem' }}>
-                                            ₹{selectedTier.originalPrice}
+                                            ₹{selectedTier.originalPrice || selectedTier.price}
                                         </span>
                                     )}
-                                    ₹{selectedTier.price}
-                                    {selectedTier.originalPrice && selectedTier.price < selectedTier.originalPrice && (
+                                    <span style={{ color: couponDiscount > 0 ? 'var(--accent)' : 'inherit' }}>
+                                        ₹{Math.round(selectedTier.price * (1 - couponDiscount / 100))}
+                                    </span>
+                                    {couponDiscount > 0 && (
+                                        <span style={{ marginLeft: '1rem', background: 'rgba(0, 229, 255, 0.1)', color: 'var(--glow-cyan)', fontSize: '0.45em', padding: '4px 8px', borderRadius: '4px', verticalAlign: 'middle', textTransform: 'uppercase' }}>
+                                            Coupon Applied
+                                        </span>
+                                    )}
+                                    {selectedTier.originalPrice && !couponDiscount && selectedTier.price < selectedTier.originalPrice && (
                                         <span style={{ marginLeft: '1rem', background: 'rgba(255, 170, 0, 0.1)', color: 'var(--accent)', fontSize: '0.45em', padding: '4px 8px', borderRadius: '4px', verticalAlign: 'middle', textTransform: 'uppercase', letterSpacing: '1px' }}>
                                             Save {Math.round((1 - selectedTier.price / selectedTier.originalPrice) * 100)}%
                                         </span>
                                     )}
                                 </div>
                             </div>
+
+                            <div className={styles.couponEntry} style={{ marginBottom: '1.5rem', background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '8px', border: '1px dashed rgba(255,255,255,0.1)' }}>
+                                <div style={{ fontSize: '0.8rem', color: 'var(--muted)', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '1px' }}>Promo Code</div>
+                                <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                    <input
+                                        type="text"
+                                        placeholder="Enter code"
+                                        value={couponCode}
+                                        onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                                        style={{
+                                            flex: 1,
+                                            background: '#000',
+                                            border: '1px solid rgba(255,184,0,0.2)',
+                                            color: '#fff',
+                                            padding: '0.6rem',
+                                            borderRadius: '4px',
+                                            fontSize: '0.9rem',
+                                            outline: 'none'
+                                        }}
+                                    />
+                                    <button
+                                        onClick={validateCoupon}
+                                        style={{
+                                            padding: '0 1rem',
+                                            background: 'rgba(255,184,0,0.1)',
+                                            border: '1px solid #FFB800',
+                                            color: '#FFB800',
+                                            borderRadius: '4px',
+                                            fontSize: '0.8rem',
+                                            cursor: 'pointer',
+                                            fontWeight: 600
+                                        }}
+                                    >
+                                        APPLY
+                                    </button>
+                                </div>
+                                {couponMsg && (
+                                    <div style={{
+                                        fontSize: '0.75rem',
+                                        marginTop: '0.5rem',
+                                        color: couponMsg.startsWith('✓') ? '#4caf50' : '#ff5722'
+                                    }}>
+                                        {couponMsg}
+                                    </div>
+                                )}
+                            </div>
+
                             <div className={styles.buttonGroup}>
                                 <button className={`btn-primary ${styles.buyNowBtn}`} onClick={handleBuyNow}>
                                     ⚡ BUY NOW

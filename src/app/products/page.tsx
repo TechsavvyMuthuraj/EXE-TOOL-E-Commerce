@@ -2,6 +2,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import ProductCard from '@/components/ProductCard';
 import { allProducts, Product } from '@/data/products';
+import { slugify } from '@/lib/utils';
 import styles from './page.module.css';
 
 const CATEGORIES = ['All', 'Optimization', 'Debloat', 'Diagnostics', 'Privacy', 'Drivers', 'Cleanup', 'Gaming'];
@@ -13,7 +14,7 @@ function sanityToProduct(doc: any): Product {
     const firstTier = doc.pricingTiers?.[0];
     return {
         id: doc._id,
-        slug: doc.slug || doc._id,
+        slug: slugify(doc.title || doc._id), // slugify the title as fallback for reliability
         title: doc.title || 'Untitled',
         category: doc.category || 'Optimization',
         price: firstTier?.price ?? 0,

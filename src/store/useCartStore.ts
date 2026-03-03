@@ -11,6 +11,7 @@ export interface CartItem {
     image: string;
     downloadLink?: string; // per-tier download URL set in admin
     paymentLink?: string; // custom direct payment URL
+    couponPaymentLink?: string; // custom direct payment URL for discounted price
 }
 
 interface CartState {

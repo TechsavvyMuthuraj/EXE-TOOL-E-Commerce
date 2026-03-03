@@ -14,6 +14,7 @@ export default function AdminDashboard() {
     const [settingsId, setSettingsId] = useState<string | null>(null);
     const [bannerActive, setBannerActive] = useState(false);
     const [bannerText, setBannerText] = useState('');
+    const [razorpayHandle, setRazorpayHandle] = useState('');
     const [savingBanner, setSavingBanner] = useState(false);
     const [bannerMsg, setBannerMsg] = useState('');
 
@@ -43,6 +44,7 @@ export default function AdminDashboard() {
                     setSettingsId(settings._id);
                     setBannerActive(!!settings.bannerActive);
                     setBannerText(settings.bannerText || '');
+                    setRazorpayHandle(settings.razorpayHandle || '');
                 }
             })
             .catch(() => { });
@@ -50,13 +52,14 @@ export default function AdminDashboard() {
 
     const handleSaveBanner = async () => {
         setSavingBanner(true); setBannerMsg('');
-        const patch = { _type: 'siteSettings', bannerActive, bannerText };
+        const document = { _type: 'siteSettings', bannerActive, bannerText, razorpayHandle };
+        const patch = { bannerActive, bannerText, razorpayHandle };
 
         try {
             const res = await fetch('/api/admin/sanity', {
                 method: settingsId ? 'PATCH' : 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(settingsId ? { id: settingsId, patch } : { document: patch })
+                body: JSON.stringify(settingsId ? { id: settingsId, patch } : { document })
             });
             const data = await res.json();
             if (data.success) {
@@ -113,7 +116,7 @@ export default function AdminDashboard() {
                         <span style={{ color: bannerActive ? '#4CAF50' : '#888', fontWeight: 600 }}>Enable Banner</span>
                     </label>
 
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', flex: 1 }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.1rem', flex: 1 }}>
                         <label style={{ fontSize: '0.75rem', color: '#555', textTransform: 'uppercase', letterSpacing: '1px' }}>Banner Text</label>
                         <input
                             value={bannerText}
@@ -123,9 +126,28 @@ export default function AdminDashboard() {
                         />
                     </div>
 
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginTop: '1.2rem' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <label style={{ fontSize: '0.75rem', color: '#555', textTransform: 'uppercase', letterSpacing: '1px' }}>Razorpay Dynamic Link</label>
+                            <span style={{ fontSize: '0.6rem', color: 'var(--accent)', background: 'rgba(255,184,0,0.1)', padding: '2px 6px', borderRadius: '4px' }}>NEW FEAT</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', background: '#111', border: '1px solid #333', borderRadius: '4px' }}>
+                            <span style={{ padding: '0 0.8rem', color: '#444', fontSize: '0.85rem', fontWeight: 700 }}>razorpay.me/@</span>
+                            <input
+                                value={razorpayHandle}
+                                onChange={e => setRazorpayHandle(e.target.value.toLowerCase().trim())}
+                                placeholder="muthurajecommerce"
+                                style={{ flex: 1, background: 'none', border: 'none', color: '#fff', padding: '0.6rem 0.5rem', outline: 'none', fontSize: '0.85rem', fontFamily: 'var(--font-mono)' }}
+                            />
+                        </div>
+                        <p style={{ color: '#555', fontSize: '0.65rem', margin: '0 0 0.5rem 0' }}>
+                            Links automatically append product price: <code>razorpay.me/@handle/<b>₹999</b></code>
+                        </p>
+                    </div>
+
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '1.5rem' }}>
                         <button onClick={handleSaveBanner} disabled={savingBanner} style={{ background: 'var(--accent)', color: '#000', border: 'none', padding: '0.5rem 1rem', borderRadius: '4px', fontWeight: 600, cursor: 'pointer', fontFamily: 'var(--font-heading)' }}>
-                            {savingBanner ? 'Saving...' : 'Broadcast Live'}
+                            {savingBanner ? 'Saving...' : 'Update Settings'}
                         </button>
                         {bannerMsg && <span style={{ color: bannerMsg.includes('✓') ? '#4CAF50' : '#ff5f56', fontSize: '0.85rem' }}>{bannerMsg}</span>}
                     </div>
