@@ -89,8 +89,9 @@ export default function DirectCheckoutPage({ params, searchParams }: {
 
                 // Fallback to Dynamic Razorpay.me handle if no specific link is found
                 if (!finalLink && handle) {
+                    const cleanHandle = handle.replace(/^(https?:\/\/)?(razorpay\.me\/)?@?/, '');
                     const price = hasValidCoupon ? Math.round(tier.price * (1 - couponDiscountPerc / 100)) : tier.price;
-                    finalLink = `https://razorpay.me/@${handle}/${price}`;
+                    finalLink = `https://razorpay.me/@${cleanHandle}/${price}`;
                 }
 
                 if (finalLink) {

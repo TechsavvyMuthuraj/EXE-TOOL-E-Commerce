@@ -156,8 +156,9 @@ export default function CartDrawer() {
 
                                         // Fallback to Dynamic Handle if no link configured
                                         if (!finalLink && handle) {
+                                            const cleanHandle = handle.replace(/^(https?:\/\/)?(razorpay\.me\/)?@?/, '');
                                             const price = discountPercentage > 0 ? Math.round(item.price * (1 - discountPercentage / 100)) : item.price;
-                                            finalLink = `https://razorpay.me/@${handle}/${price}`;
+                                            finalLink = `https://razorpay.me/@${cleanHandle}/${price}`;
                                         }
 
                                         if (finalLink) window.location.href = finalLink;
