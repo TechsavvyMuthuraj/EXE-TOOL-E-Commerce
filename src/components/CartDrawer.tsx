@@ -143,24 +143,11 @@ export default function CartDrawer() {
                                 className={`btn-primary ${styles.checkoutBtn}`}
                                 style={{ marginTop: '1rem' }}
                                 onClick={async () => {
-                                    // 1. Fetch Dynamic Handle if available
-                                    const settingsRes = await fetch('/api/admin/sanity?type=siteSettings');
-                                    const settingsData = await settingsRes.json();
-                                    const handle = settingsData.documents?.[0]?.razorpayHandle;
-
                                     const item = items[0]; // For now, handle first item or lead item
                                     if (item) {
                                         let finalLink = (discountPercentage > 0 && item.couponPaymentLink)
                                             ? item.couponPaymentLink
                                             : item.paymentLink;
-
-                                        // Fallback to Dynamic Handle if no link configured
-                                        if (!finalLink && handle) {
-                                            const cleanHandle = handle.replace(/^(?:https?:\/\/)?(?:razorpay\.me\/?)?@?/, '');
-                                            const cartSubtotal = getCartTotal();
-                                            const finalPrice = discountPercentage > 0 ? Math.round(cartSubtotal * (1 - discountPercentage / 100)) : cartSubtotal;
-                                            finalLink = `https://razorpay.me/@${cleanHandle}/${finalPrice}`;
-                                        }
 
                                         if (finalLink) window.location.href = finalLink;
                                         else alert('No Payment Link or Razorpay Handle configured.');

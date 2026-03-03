@@ -78,21 +78,8 @@ export default function DirectCheckoutPage({ params, searchParams }: {
                     }
                 }
 
-                // 3.7 Fetch Site Settings (for dynamic handle)
-                const settingsRes = await fetch('/api/admin/sanity?type=siteSettings');
-                const settingsData = await settingsRes.json();
-                const settings = settingsData.documents?.[0];
-                const handle = settings?.razorpayHandle;
-
                 // 4. Redirect to payment link if available
                 let finalLink = hasValidCoupon ? (tier.couponPaymentLink || tier.paymentLink) : tier.paymentLink;
-
-                // Fallback to Dynamic Razorpay.me handle if no specific link is found
-                if (!finalLink && handle) {
-                    const cleanHandle = handle.replace(/^(https?:\/\/)?(razorpay\.me\/)?@?/, '');
-                    const price = hasValidCoupon ? Math.round(tier.price * (1 - couponDiscountPerc / 100)) : tier.price;
-                    finalLink = `https://razorpay.me/@${cleanHandle}/${price}`;
-                }
 
                 if (finalLink) {
                     setStatus('redirecting');

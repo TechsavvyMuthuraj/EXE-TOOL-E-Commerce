@@ -23,7 +23,7 @@ export async function GET(request: Request) {
         const storedLinkFields = `_id, _type, title, amount, url, _createdAt`;
         const tutorialFields = `_id, _type, title, slug, category, _createdAt, shortDescription, icon, image, chapters[] { title, "slug": slug.current, content }`;
         const liveVideoFields = `_id, _type, title, "slug": slug.current, videoUrl, description, status, streamDate, category, _createdAt`;
-        const siteSettingsFields = `_id, _type, bannerActive, bannerText, razorpayHandle`;
+        const siteSettingsFields = `_id, _type, bannerActive, bannerText`;
 
         let fields = postFields;
         if (type === 'product') fields = productFields;

@@ -137,21 +137,9 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
     const handleBuyNow = async () => {
         if (!product || !selectedTier) return;
 
-        // FETCH SITE SETTINGS for dynamic handle fallback
-        const settingsRes = await fetch('/api/admin/sanity?type=siteSettings');
-        const settingsData = await settingsRes.json();
-        const handle = settingsData.documents?.[0]?.razorpayHandle;
-
         let finalLink = (couponDiscount > 0 && selectedTier.couponPaymentLink)
             ? selectedTier.couponPaymentLink
             : selectedTier.paymentLink;
-
-        // INSTANT REDIRECT for specific link or fallback to razorpay.me handle
-        if (!finalLink && handle) {
-            const cleanHandle = handle.replace(/^(?:https?:\/\/)?(?:razorpay\.me\/?)?@?/, '');
-            const finalPrice = Math.round(selectedTier.price * (1 - couponDiscount / 100));
-            finalLink = `https://razorpay.me/@${cleanHandle}/${finalPrice}`;
-        }
 
         if (finalLink) {
             window.location.href = finalLink;
