@@ -146,19 +146,18 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
             ? selectedTier.couponPaymentLink
             : selectedTier.paymentLink;
 
-        // INSTANT REDIRECT for razorpay.me handle or specific link
-        if (finalLink || handle) {
-            if (!finalLink && handle) {
-                const finalPrice = Math.round(selectedTier.price * (1 - couponDiscount / 100));
-                finalLink = `https://razorpay.me/@${handle}/${finalPrice}`;
-            }
-
-            if (finalLink) {
-                window.location.href = finalLink;
-                return;
-            }
+        // INSTANT REDIRECT for specific link or fallback to razorpay.me handle
+        if (!finalLink && handle) {
+            const finalPrice = Math.round(selectedTier.price * (1 - couponDiscount / 100));
+            finalLink = `https://razorpay.me/@${handle}/${finalPrice}`;
         }
 
+        if (finalLink) {
+            window.location.href = finalLink;
+            return;
+        }
+
+        // Only go to normal checkout if absolutely no payment link and no handle could be found
         const robustSlug = slugify(product.title);
         const couponParam = (couponCode && couponDiscount > 0) ? `&coupon=${encodeURIComponent(couponCode)}` : '';
         const checkoutUrl = `/checkout/${robustSlug}?tier=${encodeURIComponent(selectedTier.name)}${couponParam}`;
