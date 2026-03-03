@@ -148,7 +148,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ slug: 
 
         // INSTANT REDIRECT for specific link or fallback to razorpay.me handle
         if (!finalLink && handle) {
-            const cleanHandle = handle.replace(/^(https?:\/\/)?(razorpay\.me\/)?@?/, '');
+            const cleanHandle = handle.replace(/^(?:https?:\/\/)?(?:razorpay\.me\/?)?@?/, '');
             const finalPrice = Math.round(selectedTier.price * (1 - couponDiscount / 100));
             finalLink = `https://razorpay.me/@${cleanHandle}/${finalPrice}`;
         }
