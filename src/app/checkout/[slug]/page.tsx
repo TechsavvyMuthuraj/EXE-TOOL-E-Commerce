@@ -37,7 +37,7 @@ export default function DirectCheckoutPage({ params, searchParams }: {
                 const data = await res.json();
                 const decodedSlug = decodeURIComponent(slug).toLowerCase();
                 const match = (data.products || []).find(
-                    (p: any) => p.slug === slug || p._id === slug || slugify(p.title) === slug || p.slug === decodedSlug || slugify(p.title) === decodedSlug || p.title.toLowerCase() === decodedSlug
+                    (p: any) => p.slug === slug || p._id === slug || slugify(p.title) === slug || p.slug === decodedSlug || slugify(p.title) === decodedSlug || (p.title || '').toLowerCase() === decodedSlug
                 );
 
                 if (!match) {
